@@ -138,14 +138,13 @@ app.get('/:configuration/manifest.json', (req, res) => {
 
     // parse config
     const buffer = Buffer(req.params?.configuration || '', 'base64');
-    const [selectedProviders, rpdbKey, countryCode, installedAt] = buffer.toString('ascii')?.split(':');
+    const [selectedProviders, countryCode, installedAt] = buffer.toString('ascii')?.split(':');
 
     mixpanel && mixpanel.track('install', {
         ip: req.ip,
         distinct_id: req.ip.replace(/\.|:/g, 'Z'),
         configuration: req.params.configuration,
         selectedProviders,
-        rpdbKey,
         countryCode,
         installedAt,
     });
@@ -446,21 +445,15 @@ app.get('/:configuration?/catalog/:type/:id/:extra?.json', (req, res) => {
 
     // parse config
     const buffer = Buffer(req.params?.configuration || '', 'base64');
-    let [selectedProviders, rpdbKey, countryCode, installedAt] = buffer.toString('ascii')?.split(':');
+    let [selectedProviders, countryCode, installedAt] = buffer.toString('ascii')?.split(':');
 
-    //console.log(selectedProviders, rpdbKey, countryCode, installedAt);
-
-    if (String(rpdbKey || '').startsWith('16')) {
-        installedAt = rpdbKey;
-        rpdbKey = null;
-    }
+    //console.log(selectedProviders, countryCode, installedAt);
 
     mixpanel && mixpanel.track('catalog', {
         ip: req.ip,
         distinct_id: req.ip.replace(/\.|:/g, 'Z'),
         configuration: req.params?.configuration,
         selectedProviders,
-        rpdbKey,
         countryCode,
         installedAt,
         catalog_type: req.params.type,
@@ -476,19 +469,7 @@ app.get('/:configuration?/catalog/:type/:id/:extra?.json', (req, res) => {
     // mistakenly added peacock free instead of premium. remove pct when/if everyone is using pcp
     if (id === 'pct') {
         id = 'pcp';
-    }
-
-    if (req.params.type === 'movie') {
-        res.send({ metas: addon.replaceRpdbPosters(rpdbKey, movies[id]) });
-
-        return;
-    }
-
-    if (req.params.type === 'series') {
-        res.send({ metas: addon.replaceRpdbPosters(rpdbKey, series[id]) });
-
-        return;
-    }
+    
 })
 
 app.get('/manifest.json', function (req, res) {
